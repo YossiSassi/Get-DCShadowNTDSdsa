@@ -29,7 +29,7 @@ if ($nTDSDSAResult)
 
             $nTDSDSACanonicalNameElements = ($nTDSDSA.CanonicalName).ToString().Split("/")
 
-            Write-Output "Domain FQDN: $($nTDSDSACanonicalNameElements[0])"
+            Write-Output "Domain FQDN: $($nTDSDSACanonicalNameElements[0])`n"
             $i++
 	    }
     }
