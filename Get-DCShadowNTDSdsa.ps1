@@ -32,4 +32,8 @@ if ($nTDSDSAResult)
             Write-Output "Domain FQDN: $($nTDSDSACanonicalNameElements[0])`n"
             $i++
 	    }
+	else
+	{
+		"No suspicious entries found."
+	}
     }
