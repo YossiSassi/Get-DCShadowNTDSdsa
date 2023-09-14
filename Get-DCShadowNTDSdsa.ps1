@@ -1,8 +1,18 @@
-# comments to yossis@protonmail.com
+# comments to yossis@protonmail.com (v1.0.1)
 
-$root = Get-ADRootDSE
-$deletedFromCN = Get-ADObject -ResultPageSize 100000 -searchbase $root.configurationNamingContext  -filter {(IsDeleted -eq $true) -and (ObjectClass -ne "msExchActiveSyncDevice")} -IncludeDeletedObjects -properties *
+$recycleBinEnabled = Get-ADOptionalFeature -Filter {Name -like "Recycle Bin Feature"} | Select-Object -ExpandProperty EnabledScopes
+
+if ($recycleBinEnabled) {
+    Write-Host "Active Directory Recycle Bin is enabled in the domain. continue to check for exploitation..."
+} else {
+    Write-Host "Active Directory Recycle Bin is not enabled in the domain. Quiting.";
+    exit
+}
+
+$root = Get-ADRootDSE;
+$deletedFromCN = Get-ADObject -ResultPageSize 100000 -searchbase $root.configurationNamingContext  -filter {(IsDeleted -eq $true) -and (ObjectClass -ne "msExchActiveSyncDevice")} -IncludeDeletedObjects -properties *;
 $nTDSDSAResult = $deletedFromCN | where-object {$_.ObjectClass -eq 'nTDSDSA'}
+
 if ($nTDSDSAResult)
 	{
         [int]$nTDSDSAEntriesCount = ($nTDSDSAResult | Measure-Object).count
@@ -36,4 +46,8 @@ if ($nTDSDSAResult)
 	{
 		"No suspicious entries found."
 	}
+    }
+else
+    {
+        Write-Host "No relevant entries found (no direct evidence of exploitation)." -ForegroundColor Cyan
     }
