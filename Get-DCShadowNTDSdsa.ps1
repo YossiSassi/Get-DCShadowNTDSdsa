@@ -1,6 +1,11 @@
-# comments to yossis@protonmail.com (v1.0.1)
+# comments to yossis@protonmail.com (v1.0.2) <added option to query other domains>
+param (
+    [string]$DomainDNSname
+)
 
-$recycleBinEnabled = Get-ADOptionalFeature -Filter {Name -like "Recycle Bin Feature"} | Select-Object -ExpandProperty EnabledScopes
+if ($DomainDNSname -eq "") {$DomainDNSname = $env:USERDNSDOMAIN}
+
+$recycleBinEnabled = Get-ADOptionalFeature -Filter {Name -like "Recycle Bin Feature"} -Server $DomainDNSname | Select-Object -ExpandProperty EnabledScopes
 
 if ($recycleBinEnabled) {
     Write-Host "Active Directory Recycle Bin is enabled in the domain. continue to check for exploitation..."
@@ -9,8 +14,8 @@ if ($recycleBinEnabled) {
     exit
 }
 
-$root = Get-ADRootDSE;
-$deletedFromCN = Get-ADObject -ResultPageSize 100000 -searchbase $root.configurationNamingContext  -filter {(IsDeleted -eq $true) -and (ObjectClass -ne "msExchActiveSyncDevice")} -IncludeDeletedObjects -properties *;
+$root = Get-ADRootDSE -Server $DomainDNSname;
+$deletedFromCN = Get-ADObject -ResultPageSize 100000 -searchbase $root.configurationNamingContext -Server $DomainDNSname -filter {(IsDeleted -eq $true) -and (ObjectClass -ne "msExchActiveSyncDevice")} -IncludeDeletedObjects -properties *;
 $nTDSDSAResult = $deletedFromCN | where-object {$_.ObjectClass -eq 'nTDSDSA'}
 
 if ($nTDSDSAResult)
