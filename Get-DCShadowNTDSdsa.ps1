@@ -1,4 +1,5 @@
-# comments to yossis@protonmail.com (v1.0.3) 
+# comments to yossis@protonmail.com (v1.0.4) 
+# v1.0.4 - minor addition to reflect the number of Days Since Recycle Bin was Enabled
 # v1.0.3 - added checks for tombstoneLifetime & AD-RecycleBin enabled date + solved minor error in 'else' loop (not affecting the results but still)
 # v1.0.2 - added option to query other domains
 param (
@@ -33,7 +34,8 @@ $directoryServiceDN = "CN=Directory Service,CN=Windows NT,CN=Services,$configNCD
 # Get the Directory Service object
 $directoryService = Get-ADObject -Identity $directoryServiceDN -Server $DomainDNSname -Properties whenChanged;
 $recycleBinEnabledDate = $directoryService.whenChanged;
-Write-Host "Recycle Bin was enabled on $recycleBinEnabledDate";
+$DaysSinceRecycleBinEnabled = $($(get-date) - $recycleBinEnabledDate).Days;
+Write-Host "Recycle Bin was enabled on $recycleBinEnabledDate ($DaysSinceRecycleBinEnabled days ago)";
 
 $daysDiff = ($(Get-Date) - $recycleBinEnabledDate).Days;
 if ($daysDiff -lt $tombstoneLifetime) {$DaysBack = $tombstoneLifetime - $daysDiff} else {$DaysBack = $tombstoneLifetime}
