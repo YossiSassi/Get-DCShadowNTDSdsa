@@ -1,4 +1,5 @@
 # comments to yossis@protonmail.com (v1.0.5) 
+# v1.0.6 - Fixed a minor field output bug (first deleted entry came out empty)
 # v1.0.5 - Added check for Forest DN rather than current domain + check for relevant deleted objects before moving on + ignore lack of tombstonelifetime value + some minor error handling
 # v1.0.4 - minor addition to reflect the number of Days Since Recycle Bin was Enabled
 # v1.0.3 - added checks for tombstoneLifetime & AD-RecycleBin enabled date + solved minor error in 'else' loop (not affecting the results but still)
@@ -63,25 +64,25 @@ if ($nTDSDSAResult)
 		
         $nTDSDSAResult | ForEach-Object {
             $nTDSDSA = $_;
-            Write-Output "Entry $i of $nTDSDSAEntriesCount"
+            Write-Output "Entry $i of $nTDSDSAEntriesCount";
+            
+            [int]$IndexofHostName = $($nTDSDSA.DistinguishedName.Substring(3)).IndexOf("CN=") + 3;
+            $DeletedObjectHostName = $nTDSDSA.DistinguishedName.Substring($IndexofHostName).ToString().Split("\")[0].Replace("CN=","");
+        
             if (($($nTDSDSA.whenCreated) -  $($nTDSDSA.whenChanged)).Hours -lt 1)
                 {
                     Write-Host "[!] SUSPICIOUS ENTRY (" -ForegroundColor Yellow -NoNewline; Write-Host $DeletedObjectHostName -NoNewline -ForegroundColor Cyan; Write-Host ") -- Check Details Carefully!" -ForegroundColor Yellow
                 }
 
-            Write-Output "Full object distinguished name: $($nTDSDSA.DistinguishedName)"
-        
-            [int]$IndexofHostName = $($nTDSDSA.DistinguishedName.Substring(3)).IndexOf("CN=") + 3
-            $DeletedObjectHostName = $nTDSDSA.DistinguishedName.Substring($IndexofHostName).ToString().Split("\")[0].Replace("CN=","")
-        
-            Write-Output "Deleted computer name: $DeletedObjectHostName"
-            Write-Output "WhenCreated: $($nTDSDSA.whenCreated)"
-            Write-Output "WhenChanged: $($nTDSDSA.whenChanged)"
-            Write-Output "Domain Naming Context: $($nTDSDSA.'msDS-HasDomainNCs')"
+            Write-Output "Full object distinguished name: $($nTDSDSA.DistinguishedName)";
+            Write-Output "Deleted computer name: $DeletedObjectHostName";
+            Write-Output "WhenCreated: $($nTDSDSA.whenCreated)";
+            Write-Output "WhenChanged: $($nTDSDSA.whenChanged)";
+            Write-Output "Domain Naming Context: $($nTDSDSA.'msDS-HasDomainNCs')";
 
-            $nTDSDSACanonicalNameElements = ($nTDSDSA.CanonicalName).ToString().Split("/")
+            $nTDSDSACanonicalNameElements = ($nTDSDSA.CanonicalName).ToString().Split("/");
 
-            Write-Output "Domain FQDN: $($nTDSDSACanonicalNameElements[0])`n"
+            Write-Output "Domain FQDN: $($nTDSDSACanonicalNameElements[0])`n";
             $i++
 	    }
     }
